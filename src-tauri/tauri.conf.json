@@ -30,8 +30,15 @@
       "csp": null
     },
     "bundle": {
+      "windows": {
+        "wix": {
+          "language": "es-ES"
+        }
+      },
       "active": true,
-      "targets": "all",
+      "targets": [
+        "msi"
+      ],
       "identifier": "com.zif.app",
       "icon": [
         "icons/32x32.png",

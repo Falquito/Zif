@@ -23,6 +23,7 @@ zstd = {version="0.13", features= ["zstdmt"] }
 tar = "0.4"
 tauri-plugin-single-instance = { git = "https://github.com/tauri-apps/plugins-workspace", branch = "v1" }
 walkdir = "2.4"
+winreg = "0.55.0"
 
 [features]
 # This feature is used for production builds or when a dev server is not specified, DO NOT REMOVE!!

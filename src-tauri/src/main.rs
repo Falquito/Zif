@@ -13,7 +13,6 @@ use reqwest::Client;
 // --- MOTORES DE COMPRESIÓN ---
 use zstd::stream::write::Encoder as ZstdEncoder;
 use zstd::stream::read::Decoder as ZstdDecoder;
-// use zstd::zstd_safe::CParameter; // Comentado para quitar warning si no se usa
 use tar::{Builder, Archive};
 use walkdir::WalkDir;
 use regex::Regex;
@@ -42,8 +41,6 @@ fn emit_progress_throttled(window: &Window, last_emit: &mut Instant, percentage:
     }
 }
 
-// --- COMANDO PARA TU BACKEND ---
-// Agregamos guion bajo (_) para decirle a Rust que sabemos que no se usan por ahora
 #[tauri::command]
 async fn calcular_y_enviar_hash(path: String, id_informe: i32, user_id: i32) -> Result<String, String> {
     let mut file = File::open(&path).map_err(|e| e.to_string())?;
@@ -57,23 +54,25 @@ async fn calcular_y_enviar_hash(path: String, id_informe: i32, user_id: i32) -> 
     }
     
     let hash_hex = format!("{:x}", hasher.finalize());
-    // El nombre del archivo se calculaba pero no se usaba, lo comentamos o usamos _
     let file_name = Path::new(&path)
-    .file_name()
-    .and_then(|n| n.to_str())
-    .unwrap_or("archivo_desconocido")
-    .to_string();
+        .file_name()
+        .and_then(|n| n.to_str())
+        .unwrap_or("archivo_desconocido")
+        .to_string();
+
     let body = json!({
-        "idInforme":id_informe,
-        "userId":user_id,
-        "dataHashesFilename":[{
-            "hash":hash_hex,
-            "fileName":file_name
+        "idInforme": id_informe,
+        "userId": user_id,
+        "dataHashesFilename": [{
+            "hash": hash_hex,
+            "fileName": file_name
         }]
     });
-    let url ="http://localhost:3000/informes/registrar-archivos-hashes";
+
+    let url = "http://localhost:3000/informes/registrar-archivos-hashes";
     let client = Client::new();
     let response = client.post(url).json(&body).send().await.map_err(|e| e.to_string())?;
+
     if response.status().is_success() {
         Ok(hash_hex)
     } else {
@@ -128,12 +127,6 @@ async fn comprimir_con_zstd(window: Window, path: String, destination: String, l
     let mut encoder = ZstdEncoder::new(BufWriter::new(file), level).map_err(|e| e.to_string())?;
     encoder.multithread(0).unwrap();
     
-    // Configuración Zstd (Comentada la parte específica que daba warning si no importabas CParameter)
-    /* if level >= 10 {
-         let _ = encoder.set_parameter(zstd::zstd_safe::CParameter::EnableLongDistanceMatching(true));
-    }
-    */
-
     let mut tar_builder = Builder::new(encoder);
     let mut processed = 0;
 
@@ -168,33 +161,51 @@ async fn descomprimir(window: Window, tar_path: String, dest_folder: String) -> 
 
 fn main() {
     tauri::Builder::default()
-        // --- PLUGIN SINGLE INSTANCE (ESTO ES LA CLAVE) ---
+        // --- PLUGIN SINGLE INSTANCE ---
         .plugin(tauri_plugin_single_instance::init(|app, argv, _cwd| {
-            // Este código se ejecuta cuando intentas abrir una SEGUNDA instancia.
-            // Le pasamos los argumentos a la PRIMERA instancia.
             println!("Nueva instancia detectada con args: {:?}", argv);
+            // Enviamos los argumentos a la ventana principal para que React los capture
             app.emit_all("deep-link", argv).unwrap();
             
-            // Foco a la ventana principal
             if let Some(window) = app.get_window("main") {
                 let _ = window.set_focus();
+                let _ = window.unminimize();
             }
         }))
         .setup(|app| {
-            // Este código se ejecuta SOLO en la PRIMERA instancia (arranque en frío)
+            // --- REGISTRO AUTOMÁTICO DEL PROTOCOLO EN WINDOWS ---
+            #[cfg(target_os = "windows")]
+            {
+                use std::path::Path;
+                use winreg::enums::*;
+                use winreg::RegKey;
+
+                // Registramos zif:// en el sistema de forma silenciosa
+                if let Ok(exe_path) = std::env::current_exe() {
+                    let hkcu = RegKey::predef(HKEY_CURRENT_USER);
+                    let path = Path::new("Software\\Classes\\zif");
+                    
+                    if let Ok((key, _)) = hkcu.create_subkey(&path) {
+                        let _ = key.set_value("", &"URL:zif Protocol");
+                        let _ = key.set_value("URL Protocol", &"");
+                        
+                        if let Ok((cmd_key, _)) = key.create_subkey("shell\\open\\command") {
+                            let cmd = format!("\"{}\" \"%1\"", exe_path.display());
+                            let _ = cmd_key.set_value("", &cmd);
+                        }
+                    }
+                }
+            }
+            // ----------------------------------------------------
+
             let args: Vec<String> = std::env::args().collect();
-            
+            let main_window = app.get_window("main").unwrap();
+
             if args.len() > 1 && args[1].starts_with("zif://") {
                 let url = args[1].clone();
-                let main_window = app.get_window("main").unwrap();
-                
-                // TRUCO PARA LA CONDICIÓN DE CARRERA:
-                // Esperamos un poquito a que React cargue antes de mandar el evento.
-                // En una app real, el front debería decir "Estoy listo", pero esto sirve.
                 std::thread::spawn(move || {
-                    std::thread::sleep(std::time::Duration::from_millis(1500)); // Espera 1.5 seg
-                    println!("Enviando evento deep-link diferido: {}", url);
-                    main_window.emit("deep-link", vec![url]).unwrap(); // Enviamos como array para compatibilidad con el plugin
+                    std::thread::sleep(Duration::from_millis(1500));
+                    let _ = main_window.emit("deep-link", vec![url]);
                 });
             }
             Ok(())
