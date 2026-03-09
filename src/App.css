@@ -1,0 +1,197 @@
+/* RESET & FONTS */
+* {
+  box-sizing: border-box;
+  font-family: "Segoe UI", Tahoma, sans-serif;
+  font-size: 12px;
+}
+
+body {
+  margin: 0;
+  background-color: #f0f0f0;
+  color: #000;
+  overflow: hidden;
+}
+
+.sevenzip-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+/* TOOLBAR ESTILO 7-ZIP */
+.toolbar {
+  display: flex;
+  gap: 2px;
+  background: linear-gradient(to bottom, #ffffff 0%, #ebebeb 100%);
+  padding: 5px;
+  border-bottom: 1px solid #a0a0a0;
+}
+
+.tool-btn {
+  background: transparent;
+  border: 1px solid transparent;
+  padding: 4px 8px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 80px;
+}
+
+.tool-btn:hover {
+  background-color: #e5f1fb;
+  border: 1px solid #0078d7;
+}
+
+.tool-btn .icon {
+  font-size: 20px;
+  margin-bottom: 2px;
+}
+
+/* LAYOUT PRINCIPAL */
+.main-layout {
+  display: grid;
+  grid-template-columns: 200px 1fr;
+  flex: 1;
+  padding: 10px;
+  gap: 10px;
+}
+
+/* CONFIGURACIÓN */
+fieldset {
+  border: 1px solid #a0a0a0;
+  padding: 10px;
+  background: #fff;
+}
+
+legend {
+  padding: 0 5px;
+}
+
+.level-info {
+  margin-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+/* Estilo para la barra del Slider (el carril) */
+input[type="range"] {
+  -webkit-appearance: none;
+  width: 100%;
+  height: 6px;
+  background: #d0d0d0;
+  /* Color de fondo del carril */
+  border: 1px solid #a0a0a0;
+  outline: none;
+}
+
+/* Estilo para el "Thumb" (el circulito que arrastrás) */
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 12px;
+  height: 20px;
+  background: #f0f0f0;
+  border: 1px solid #707070;
+  cursor: pointer;
+  box-shadow: 1px 1px 1px rgba(0, 0, 0, 0.2);
+}
+
+input[type="range"]::-webkit-slider-thumb:hover {
+  background: #e5f1fb;
+  border-color: #0078d7;
+}
+
+/* Color azul cuando se selecciona o interactúa (compatibilidad) */
+input[type="range"]:active::-webkit-slider-thumb {
+  background: #0078d7;
+}
+
+/* Para navegadores modernos, esto pinta la parte izquierda de azul */
+input[type="range"] {
+  accent-color: #0078d7;
+}
+
+/* VENTANA DE PROGRESO (EL LOOK 7-ZIP) */
+.status-window {
+  background: #fff;
+  border: 1px solid #a0a0a0;
+  padding: 15px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  box-shadow: inset 1px 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.info-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 10px;
+}
+
+/* BARRA DE PROGRESO CLÁSICA */
+.progress-bar-container {
+  height: 25px;
+  background-color: #e0e0e0;
+  border: 1px solid #8e8e8e;
+  position: relative;
+  overflow: hidden;
+}
+
+.progress-bar-fill {
+  height: 100%;
+  background-color: #06b025;
+  /* El verde clásico de progreso */
+  transition: width 0.2s;
+}
+
+.progress-text {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-weight: bold;
+  color: #000;
+  text-shadow: 0 0 2px white;
+}
+
+/* LOG DE ARCHIVOS */
+.file-log {
+  background: #f9f9f9;
+  border: 1px solid #dcdcdc;
+  padding: 8px;
+  flex: 1;
+  font-family: "Consolas", monospace;
+  font-size: 11px;
+}
+
+.log-line {
+  margin-bottom: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.truncate {
+  color: #666;
+}
+
+/* FOOTER */
+.footer-bar {
+  background: #f0f0f0;
+  border-top: 1px solid #a0a0a0;
+  padding: 3px 10px;
+  font-size: 11px;
+  color: #444;
+}
+
+/* ESTADOS ESPECIALES */
+.status-window.working .progress-bar-fill {
+  background-color: #0078d7;
+}
+
+.status-window.done .progress-bar-fill {
+  background-color: #06b025;
+}
