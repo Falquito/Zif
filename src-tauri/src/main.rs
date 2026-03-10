@@ -69,7 +69,7 @@ async fn calcular_y_enviar_hash(path: String, id_informe: i32, user_id: i32) -> 
         }]
     });
 
-    let url = "http://localhost:3000/informes/registrar-archivos-hashes";
+    let url = "http://localhost:8080/informes/registrar-archivos-hashes";
     let client = Client::new();
     let response = client.post(url).json(&body).send().await.map_err(|e| e.to_string())?;
 
